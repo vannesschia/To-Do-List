@@ -49,6 +49,7 @@ function App() {
       <input id="todoInput" type="text" placeholder="Enter To-do here" onChange={e => {setText(e.target.value)}}></input>
       <select onChange={e => {setTag(e.target.value)}}>
         <option disabled selected value=""> -- select an option -- </option>
+        <option value="">None</option>
         <option value="School">School</option>
         <option value="Work">Work</option>
         <option value="Hobby">Hobby</option>
