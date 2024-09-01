@@ -1,13 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import Task from "./components/Task"
 
 function App() {
   const [todos, setTodos] = useState([]);
-  const [text, setText] = useState("");
+  const [completedTodos, setCompletedTodos] = useState([]);
+  const [incompletedTodos, setIncompletedTodos] = useState([]);
   const [tag, setTag] = useState("");
   const [filter, setFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("")
+  const text = useRef("")
+
+  useEffect(() => {
+    setCompletedTodos(todos.filter(todo => todo.completed == true))
+    setIncompletedTodos(todos.filter(todo => todo.completed == false))
+  }, [todos])
 
   const handleCheck = (update) => {
     const newTodos = todos.map((todo) => {
@@ -20,18 +27,18 @@ function App() {
   }
 
   const handleSubmit = () => {
-    if (text != "") {
+    if (text.current != "") {
       let isSame = false
       for (let i = 0; i < todos.length; ++i) {
-        if (todos[i].title == text) {
+        if (todos[i].title == text.current) {
           alert("You already have that task.")
           isSame = true
         }
       }
       if (!isSame) {
-        setText("");
+        setTodos([{title: text.current, tag: tag, completed: false}, ...todos]);
+        text.current = ""
         setTag("");
-        setTodos([{title: text, tag: tag, completed: false}, ...todos]);
       }
     }
     document.getElementById("todoInput").value = "";
@@ -39,14 +46,12 @@ function App() {
 
   const startsWith = current => word => current ? word.slice(0, current.length).toLowerCase() === current.toLowerCase() : true
   const tagWith = current => word => current ? current === word : true
-
-  const incompletedTodo = todos.filter(todo => todo.completed == false)
-  const completedTodo = todos.filter(todo => todo.completed == true)
+  console.log("render")
 
   return (
     <>
     <div>
-      <input id="todoInput" type="text" placeholder="Enter To-do here" onChange={e => {setText(e.target.value)}}></input>
+      <input id="todoInput" type="text" placeholder="Enter To-do here" onChange={e => {text.current = e.target.value}}></input>
       <select onChange={e => {setTag(e.target.value)}}>
         <option disabled selected value=""> -- select an option -- </option>
         <option value="">None</option>
@@ -72,13 +77,13 @@ function App() {
     <div className='logo'>
       <div className='list'>
         <h2>To Do</h2>
-          {incompletedTodo.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
+          {incompletedTodos.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
             return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheck} check={false}></Task>
           })}
       </div>
       <div className='list'>
         <h2>Completed</h2>
-        {completedTodo.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
+        {completedTodos.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
             return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheck} check={true}></Task>
           })}
       </div>
