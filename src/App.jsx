@@ -1,42 +1,51 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import './App.css'
 import Task from "./components/Task"
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [incompletedTodos, setIncompletedTodos] = useState([])
   const [completedTodos, setCompletedTodos] = useState([]);
-  const [incompletedTodos, setIncompletedTodos] = useState([]);
   const [tag, setTag] = useState("");
   const [filter, setFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("")
   const text = useRef("")
 
-  useEffect(() => {
-    setCompletedTodos(todos.filter(todo => todo.completed == true))
-    setIncompletedTodos(todos.filter(todo => todo.completed == false))
-  }, [todos])
 
-  const handleCheck = (update) => {
-    const newTodos = todos.map((todo) => {
+  const handleCheckToCompleted = (update) => {
+    const newTodos = incompletedTodos.filter(todo => {
       if (todo.title === update) {
-        return {...todo, completed: !todo.completed}
+        setCompletedTodos([todo, ...completedTodos]);
+        return false; // Remove from incompletedTodos
       }
-      return todo
-    })
-    setTodos(newTodos)
+      return true; // Keep in incompletedTodos
+    });
+  
+    setIncompletedTodos(newTodos);
+  };
+
+  const handleCheckToIncompleted = (update) => {
+    const newCompletedTodos = completedTodos.filter(todo => {
+      if (todo.title === update) {
+        setIncompletedTodos([todo, ...incompletedTodos]);
+        return false; // Remove from completedTodos
+      }
+      return true; // Keep in completedTodos
+    });
+
+    setCompletedTodos(newCompletedTodos);
   }
 
   const handleSubmit = () => {
     if (text.current != "") {
       let isSame = false
-      for (let i = 0; i < todos.length; ++i) {
-        if (todos[i].title == text.current) {
+      for (let i = 0; i < incompletedTodos.length; ++i) {
+        if (incompletedTodos[i].title == text.current) {
           alert("You already have that task.")
           isSame = true
         }
       }
       if (!isSame) {
-        setTodos([{title: text.current, tag: tag, completed: false}, ...todos]);
+        setIncompletedTodos([{title: text.current, tag: tag}, ...incompletedTodos]);
         text.current = ""
         setTag("");
       }
@@ -46,7 +55,6 @@ function App() {
 
   const startsWith = current => word => current ? word.slice(0, current.length).toLowerCase() === current.toLowerCase() : true
   const tagWith = current => word => current ? current === word : true
-  console.log("render")
 
   return (
     <>
@@ -78,13 +86,13 @@ function App() {
       <div className='list'>
         <h2>To Do</h2>
           {incompletedTodos.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
-            return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheck} check={false}></Task>
+            return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheckToCompleted} check={false}></Task>
           })}
       </div>
       <div className='list'>
         <h2>Completed</h2>
         {completedTodos.filter(todo => startsWith(filter)(todo.title) && tagWith(tagFilter)(todo.tag)).map((todo) => {
-            return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheck} check={true}></Task>
+            return <Task name={todo.title} tag={todo.tag} handleCheck={handleCheckToIncompleted} check={true}></Task>
           })}
       </div>
     </div>
